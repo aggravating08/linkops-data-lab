@@ -34,11 +34,38 @@ def validate(tree):
             raise ValueError("This operation is disabled")
 
 
+class StripPreloadedImports(ast.NodeTransformer):
+    """Allow harmless imports for names already injected into the sandbox scope."""
+    allowed = {
+        "pandas": "pd",
+        "matplotlib.pyplot": "plt",
+        "json": "json",
+        "math": "math",
+        "statistics": "statistics",
+    }
+
+    def visit_Import(self, node):
+        for alias in node.names:
+            expected = self.allowed.get(alias.name)
+            if expected is None:
+                raise ValueError("Only preloaded analysis libraries are available")
+            if expected != alias.asname and not (
+                alias.name in ("json", "math", "statistics") and alias.asname is None
+            ):
+                raise ValueError("Only preloaded analysis libraries are available")
+        return None
+
+    def visit_ImportFrom(self, node):
+        raise ValueError("Imports from modules are disabled")
+
+
 def main():
     os.makedirs("/tmp/mpl", exist_ok=True)
     os.environ["MPLCONFIGDIR"] = "/tmp/mpl"
     source = open("/workspace/analysis.py", "r", encoding="utf-8").read()
     tree = ast.parse(source, filename="analysis.py", mode="exec")
+    tree = StripPreloadedImports().visit(tree)
+    tree = ast.fix_missing_locations(tree)
     validate(tree)
     safe_builtins = {
         "abs": abs, "all": all, "any": any, "bool": bool, "dict": dict,

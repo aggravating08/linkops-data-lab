@@ -67,7 +67,7 @@ def parse_csv(content):
     return headers, rows[1:]
 
 
-def call_model(messages, max_tokens=1300):
+def call_model(messages, max_tokens=2400):
     if not INFERENCE_KEY:
         raise RuntimeError("Vultr Serverless Inference is not configured yet.")
     payload = json.dumps({
@@ -99,18 +99,20 @@ def call_model(messages, max_tokens=1300):
 
 def json_object(text):
     text = text.strip()
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.I | re.S).strip()
     if text.startswith("```"):
         text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.I)
-    start, end = text.find("{"), text.rfind("}")
-    if start < 0 or end <= start:
-        raise RuntimeError("The model returned an unreadable plan. Try a more specific question.")
-    try:
-        result = json.loads(text[start:end + 1])
-    except json.JSONDecodeError:
-        raise RuntimeError("The model returned an unreadable plan. Try a more specific question.") from None
-    if not isinstance(result, dict):
-        raise RuntimeError("The model returned an unreadable plan. Try a more specific question.")
-    return result
+    decoder = json.JSONDecoder()
+    for start, char in enumerate(text):
+        if char != "{":
+            continue
+        try:
+            result, _ = decoder.raw_decode(text[start:])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(result, dict):
+            return result
+    raise RuntimeError("The model returned an unreadable plan. Try a more specific question.")
 
 
 def make_plan(question, headers, rows):
@@ -125,7 +127,7 @@ def make_plan(question, headers, rows):
     result = json_object(call_model([
         {"role": "system", "content": system},
         {"role": "user", "content": json.dumps(prompt, ensure_ascii=False)},
-    ]))
+    ], max_tokens=2400))
     title = str(result.get("title", "CSV analysis"))[:100]
     steps = result.get("steps")
     if not isinstance(steps, list) or not 2 <= len(steps) <= 4:
@@ -303,7 +305,10 @@ def run_analysis(question, csv_text):
     try:
         plan = make_plan(question.strip(), headers, rows)
         output, chart, _ = execute_in_sandbox(csv_text, plan["code"])
-        explanation = summarize(question.strip(), plan, output)
+        try:
+            explanation = summarize(question.strip(), plan, output)
+        except RuntimeError:
+            explanation = "The sandbox completed the analysis. The model summary was unavailable, so the result below is the direct executed output."
         result = {
             "id": run_id,
             "created_at": now(),
