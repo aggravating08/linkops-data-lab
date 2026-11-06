@@ -1,7 +1,10 @@
 FROM python:3.12-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 MPLBACKEND=Agg
-RUN pip install --no-cache-dir pandas==2.2.3 matplotlib==3.10.1
-RUN mkdir -p /opt/linkops /workspace && chown 65534:65534 /workspace
-COPY sandbox/runner.py sandbox/probe.py /opt/linkops/
-USER 65534:65534
-WORKDIR /workspace
+WORKDIR /app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt && useradd --uid 10001 --create-home app
+COPY server.py ./
+COPY static ./static
+USER 10001:10001
+ENV HOST=0.0.0.0 PORT=8080 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+EXPOSE 8080
+CMD ["python", "server.py"]
