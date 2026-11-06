@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1118">
+  <meta name="description" content="Ask a question about a CSV. LinkOps plans the analysis, runs generated Python inside a fresh network-isolated Vultr sandbox, and returns the code and results.">
+  <title>LinkOps Data Lab — Sandboxed CSV analyst</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b1118;--panel:#111b25;--panel2:#15222e;--line:#293b49;--text:#edf5f5;--muted:#9babb3;--teal:#73e1c3;--blue:#9fc4ff;--amber:#f6ca7a;--red:#ff9d91;--green:#9de4b4;--shadow:0 24px 70px #0004}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(1000px 480px at 70% -130px,#173343 0,transparent 65%),var(--bg);color:var(--text);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea{font:inherit}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--teal);outline-offset:2px}.shell{max-width:1280px;margin:auto;padding:0 30px}.topbar{height:76px;border-bottom:1px solid #fff1;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:11px;font-weight:760;letter-spacing:-.035em}.brand-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#73e1c3,#84b9f4);color:#071b20;font-size:18px}.brand small{font-size:11px;letter-spacing:.01em;color:#8da3ae;font-weight:600}.health{display:flex;align-items:center;gap:8px;color:#b4c3c8;font-size:12px}.dot{width:8px;height:8px;background:var(--amber);border-radius:50%;box-shadow:0 0 14px currentColor}.main{padding:42px 0 64px}.eyebrow{font:650 11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--teal)}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:36px;margin:8px 0 28px}.hero h1{font-size:clamp(38px,6vw,68px);line-height:1.02;letter-spacing:-.06em;margin:12px 0}.hero h1 span{color:#a4bec4}.hero p{max-width:700px;margin:0;color:#aab9bf;font-size:16px}.hero-aside{max-width:275px;padding:4px 0 4px 15px;border-left:2px solid var(--teal);font-size:12px;color:#bfd0d3}.hero-aside strong{display:block;color:var(--text);margin-bottom:4px}.status-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:28px 0}.status-item{background:#111c26d9;border:1px solid var(--line);border-radius:13px;padding:14px}.status-item b{display:block;font-size:14px}.status-item span{color:var(--muted);font-size:11px}.grid{display:grid;grid-template-columns:minmax(300px,.86fr) minmax(0,1.14fr);gap:18px;align-items:start}.card{background:linear-gradient(150deg,#14212c,#101922);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}.card-pad{padding:22px}.card-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:17px}.card-head h2{margin:0;font-size:18px;letter-spacing:-.03em}.card-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.step{color:#7e929d;font:11px ui-monospace,monospace;white-space:nowrap}.label{display:block;font-size:12px;color:#cfdbde;font-weight:650;margin:15px 0 7px}.question{width:100%;min-height:92px;resize:vertical;background:#0b141d;color:var(--text);border:1px solid #344b58;border-radius:11px;padding:12px 13px}.csv{width:100%;min-height:205px;resize:vertical;background:#0b141d;color:#d9e5e5;border:1px solid #344b58;border-radius:11px;padding:12px 13px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}.file-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;color:#8297a1;font-size:11px}.file-row input{max-width:75%;font-size:11px;color:#a9bbc1}.sample{background:transparent;border:1px solid #3a5960;color:#a9e7d7;border-radius:8px;padding:7px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}.consent{display:flex;align-items:flex-start;gap:9px;margin:15px 0;color:#a3b4bb;font-size:11px}.consent input{margin-top:3px;accent-color:var(--teal)}.primary{width:100%;border:0;border-radius:10px;padding:13px;background:linear-gradient(105deg,#6edcbe,#94e2b5);color:#08211b;font-weight:760;cursor:pointer}.primary:disabled{opacity:.5;cursor:not-allowed}.error{min-height:20px;color:var(--red);font-size:12px;margin:10px 0 0}.privacy{padding:12px 13px;margin-top:12px;border:1px solid #3a4538;background:#191d18;border-radius:10px;color:#bdc2a9;font-size:11px}.privacy b{color:#e2d58e}.right-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;border-bottom:1px solid var(--line)}.right-head h2{font-size:17px;margin:0}.run-id{color:#8398a1;font:10px ui-monospace,monospace}.empty{padding:58px 24px;text-align:center;color:#82969f;font-size:13px}.empty-mark{font-size:30px;color:#6cae9d;margin-bottom:8px}.progress{display:none;padding:20px 22px;border-bottom:1px solid var(--line)}.progress.show{display:block}.progress-title{font-weight:700;margin-bottom:12px}.progress-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.progress-step{padding:9px;background:#0d1720;border:1px solid #253846;border-radius:8px;color:#738690;font-size:10px}.progress-step.active{color:var(--teal);border-color:#4a887b;background:#12231f}.progress-step.done{color:#9de4b4;border-color:#386247}.result{display:none}.result.show{display:block}.result-inner{padding:20px 22px}.result-title{font-size:23px;line-height:1.15;letter-spacing:-.04em;margin:0}.result-summary{padding:14px 15px;margin:15px 0;background:#10221e;border:1px solid #315b4e;border-radius:11px;color:#d0e5dc;font-size:13px}.plan{display:grid;gap:7px;padding:0;margin:14px 0 20px;list-style:none;counter-reset:plan}.plan li{counter-increment:plan;display:grid;grid-template-columns:24px 1fr;gap:9px;align-items:start;color:#bccacf;font-size:12px}.plan li:before{content:counter(plan);width:20px;height:20px;display:grid;place-items:center;border:1px solid #37685e;border-radius:50%;color:var(--teal);font:10px ui-monospace,monospace}.chart{display:none;width:100%;height:auto;max-height:400px;object-fit:contain;border-radius:10px;border:1px solid #293c48;background:white;margin:12px 0}.chart.show{display:block}.result-box{background:#0a121a;border:1px solid #293d4b;border-radius:10px;padding:14px;margin:14px 0}.result-box h3{font:650 10px ui-monospace,monospace;color:#91a6af;text-transform:uppercase;letter-spacing:.1em;margin:0 0 8px}.result-text{white-space:pre-wrap;overflow-wrap:anywhere;color:#deeaeb;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}.code{max-height:340px;overflow:auto;white-space:pre;overflow-wrap:normal;color:#b8d8ed;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}.result-actions{display:flex;gap:8px;flex-wrap:wrap}.secondary{border:1px solid #3b5964;background:#14232b;color:#bfe8dd;border-radius:8px;padding:8px 10px;font-size:11px;font-weight:700;cursor:pointer}.containment{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:18px;padding-top:16px;border-top:1px solid #293b47}.containment div{border:1px solid #273d48;background:#0d1720;border-radius:9px;padding:9px}.containment b{display:block;color:var(--teal);font:600 9px ui-monospace,monospace;text-transform:uppercase}.containment span{font-size:10px;color:#a7b8bd}.footer{display:flex;justify-content:space-between;gap:16px;color:#71858f;font-size:10px;margin-top:25px;padding-top:14px;border-top:1px solid #ffffff12}.footer strong{color:#9db1b7}
+    .probe-box{margin-top:14px;padding:13px;border:1px solid #31554e;border-radius:11px;background:#10201d}.probe-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.probe-head strong{font-size:12px}.probe-copy{font-size:10px;color:#a8bbb8;margin:5px 0 10px}.probe-status{margin-top:8px;color:#9de4b4;font:11px/1.5 ui-monospace,monospace;white-space:pre-wrap}.probe-status.fail{color:var(--red)}
+    @media(max-width:850px){.shell{padding:0 18px}.grid{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}.hero-aside{max-width:none}.status-strip{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:560px){.shell{padding:0 13px}.topbar{height:64px}.main{padding-top:28px}.hero h1{font-size:42px}.hero p{font-size:14px}.status-item{padding:11px}.card-pad{padding:16px}.right-head{padding:15px 16px}.result-inner{padding:16px}.progress{padding:16px}.progress-steps{grid-template-columns:repeat(2,1fr)}.containment{grid-template-columns:repeat(2,1fr)}.footer{flex-direction:column}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <nav class="topbar" aria-label="LinkOps Data Lab">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">↗</span><span>LinkOps <small> / DATA LAB</small></span></div>
+      <div class="health"><span id="health-dot" class="dot"></span><span id="health-label">Checking runtime</span></div>
+    </nav>
+    <main class="main">
+      <header class="hero">
+        <div><div class="eyebrow">VULTR AGENT RUSH · BLAST RADIUS ZERO</div><h1>Ask the data.<br><span>Watch it work.</span></h1><p>LinkOps turns a plain-language CSV question into an executable analysis. Vultr Inference writes the plan and Python; a fresh, disposable container runs it without network access and returns the real result.</p></div>
+        <aside class="hero-aside"><strong>Containment first</strong>The model never executes in the web app. Each run gets its own no-network sandbox, hard memory and time limits, and a volume that is destroyed afterward.</aside>
+      </header>
+      <section class="status-strip" aria-label="Execution path">
+        <div class="status-item"><b>01 · Plan</b><span>Vultr Serverless Inference</span></div>
+        <div class="status-item"><b>02 · Write</b><span>Readable Python is shown</span></div>
+        <div class="status-item"><b>03 · Execute</b><span>Disposable Docker sandbox</span></div>
+        <div class="status-item"><b>04 · Verify</b><span>Results come from the run</span></div>
+      </section>
+      <div class="grid">
+        <section class="card card-pad" aria-labelledby="task-heading">
+          <div class="card-head"><div><h2 id="task-heading">Give the agent a task</h2><p>Ask about totals, trends, comparisons, or outliers.</p></div><span class="step">01 / INPUT</span></div>
+          <label class="label" for="question">Your question</label>
+          <textarea class="question" id="question" maxlength="500" placeholder="Which product generated the most revenue? Show a chart."></textarea>
+          <div class="file-row"><input id="file" type="file" accept=".csv,text/csv"><button id="sample" class="sample" type="button">Load sample CSV</button></div>
+          <label class="label" for="csv">CSV data</label>
+          <textarea class="csv" id="csv" spellcheck="false" placeholder="Upload a CSV or paste one here…"></textarea>
+          <label class="consent"><input id="consent" type="checkbox"><span>I understand the CSV preview (column names and up to 5 rows) is sent to Vultr Inference to write the analysis, and the full file is run in a temporary isolated sandbox. I will not upload confidential or personal data.</span></label>
+          <button id="run" class="primary" type="button">Plan and run in sandbox <span aria-hidden="true">↗</span></button>
+          <p id="error" class="error" role="alert" aria-live="polite"></p>
+          <div class="privacy"><b>Data handling:</b> the uploaded CSV is not saved in the app database or request logs. The disposable task volume is removed after each run.</div>
+          <div class="probe-box"><div class="probe-head"><strong>Prove the boundary</strong><button id="probe" class="sample" type="button">Run isolation probe</button></div><p class="probe-copy">A fixed, non-destructive check tries network access and a write outside the task workspace inside a disposable container.</p><div id="probe-status" class="probe-status" aria-live="polite"></div></div>
+        </section>
+        <section class="card" aria-labelledby="result-heading">
+          <div class="right-head"><h2 id="result-heading">Run workspace</h2><span id="run-id" class="run-id">READY</span></div>
+          <div id="progress" class="progress" aria-live="polite">
+            <div id="progress-title" class="progress-title">The server is planning, executing, and explaining this run. It may take up to a minute.</div>
+            <div class="progress-steps"><div class="progress-step">Plan</div><div class="progress-step">Write code</div><div class="progress-step">Run sandbox</div><div class="progress-step">Explain output</div></div>
+          </div>
+          <div id="empty" class="empty"><div class="empty-mark">⤴</div>Your result, executed code, and chart will appear here.<br>Start with the sample CSV to see the full flow.</div>
+          <article id="result" class="result">
+            <div class="result-inner">
+              <p class="eyebrow">EXECUTED ANALYSIS</p><h3 id="result-title" class="result-title"></h3>
+              <div id="summary" class="result-summary"></div>
+              <ol id="plan" class="plan"></ol>
+              <img id="chart" class="chart" alt="Chart generated from the sandboxed CSV analysis">
+              <div class="result-box"><h3>Sandbox output</h3><div id="result-text" class="result-text"></div></div>
+              <div class="result-box"><h3>Python executed in the sandbox</h3><pre id="code" class="code"></pre></div>
+              <div class="result-actions"><button id="download-code" class="secondary" type="button">Download Python</button><button id="download-result" class="secondary" type="button">Download result</button></div>
+              <div class="containment" aria-label="Sandbox controls"><div><b>Network</b><span>Disabled</span></div><div><b>Memory</b><span>512 MB cap</span></div><div><b>Time</b><span>15 sec limit</span></div><div><b>Lifecycle</b><span>Volume removed</span></div></div>
+              <p class="run-id" id="metadata"></p>
+            </div>
+          </article>
+        </section>
+      </div>
+      <footer class="footer"><span><strong>LinkOps Data Lab</strong> · model-assisted CSV work with an isolated execution boundary</span><span>Hackathon prototype · upload only data you are allowed to share</span></footer>
+    </main>
+  </div>
+  <script>
+    const $=s=>document.querySelector(s), sampleCsv='date,product,region,units,revenue\n2026-10-01,Orbit Mouse,West,18,1260\n2026-10-02,Orbit Mouse,East,12,840\n2026-10-02,Keypad Mini,West,25,1750\n2026-10-03,Keypad Mini,South,19,1330\n2026-10-04,Studio Mic,East,9,2250\n2026-10-05,Studio Mic,West,14,3500\n2026-10-06,Orbit Mouse,South,21,1470\n2026-10-06,Keypad Mini,East,17,1190\n2026-10-07,Studio Mic,South,11,2750\n2026-10-08,Orbit Mouse,East,16,1120\n2026-10-09,Keypad Mini,West,22,1540\n2026-10-10,Studio Mic,East,8,2000';
+    let last=null;const error=$('#error');
+    async function checkHealth(){try{const r=await fetch('/health');const h=await r.json();if(h.inference_configured){$('#health-label').textContent='Vultr Inference configured';$('#health-dot').style.background='var(--green)'}else{$('#health-label').textContent='Inference key not configured';$('#health-dot').style.background='var(--amber)'}}catch{$('#health-label').textContent='Runtime unavailable';$('#health-dot').style.background='var(--red)'}}
+    $('#sample').onclick=()=>{$('#csv').value=sampleCsv;if(!$('#question').value)$('#question').value='Which product generated the most revenue? Show a chart.'};
+    $('#file').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>500000){error.textContent='Please choose a CSV smaller than 500 KB.';e.target.value='';return}try{$('#csv').value=await file.text();error.textContent=''}catch{error.textContent='Could not read that file.'}};
+    function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+    $('#download-code').onclick=()=>{if(last)download('linkops-analysis.py',last.code,'text/x-python')};$('#download-result').onclick=()=>{if(last)download('linkops-result.txt',last.result,'text/plain')};
+    $('#probe').onclick=async()=>{const status=$('#probe-status'),button=$('#probe');status.textContent='Running the containment checks…';status.classList.remove('fail');button.disabled=true;try{const r=await fetch('/api/probe',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const d=await r.json();if(!r.ok)throw new Error(d.error||'Probe did not complete.');status.textContent=`Network egress: ${d.network==='blocked'?'BLOCKED ✓':'unexpectedly reachable'}\nRead-only root: ${d.rootfs_write==='denied'?'WRITE DENIED ✓':'unexpectedly writable'}\nInference key in sandbox: ${d.inference_key_visible?'PRESENT':'NOT PRESENT ✓'}\nContainer: destroyed after probe`;if(d.network!=='blocked'||d.rootfs_write!=='denied'||d.inference_key_visible)status.classList.add('fail')}catch(e){status.textContent=e.message;status.classList.add('fail')}finally{button.disabled=false}};
+    $('#run').onclick=async()=>{
+      error.textContent='';const question=$('#question').value.trim(),csv=$('#csv').value;
+      if(!question){error.textContent='Write a question for the agent first.';return}if(!csv.trim()){error.textContent='Upload or paste CSV data first.';return}if(!$('#consent').checked){error.textContent='Confirm the data handling note before running an analysis.';return}
+      $('#run').disabled=true;$('#empty').style.display='none';$('#result').classList.remove('show');$('#progress').classList.add('show');$('#run-id').textContent='RUNNING';
+      try{const response=await fetch('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,csv})});const data=await response.json();if(!response.ok)throw new Error(data.error||'The analysis did not complete.');last=data;
+        $('#result-title').textContent=data.title;$('#summary').textContent=data.summary;$('#plan').replaceChildren(...data.steps.map(s=>{const li=document.createElement('li');li.textContent=s;return li}));$('#result-text').textContent=data.result;$('#code').textContent=data.code;$('#run-id').textContent='RUN '+data.id.toUpperCase();$('#metadata').textContent=`${data.row_count.toLocaleString()} rows · ${data.column_count} columns · ${(data.duration_ms/1000).toFixed(1)} sec · fresh volume removed`;
+        const chart=$('#chart');if(data.chart_png){chart.src='data:image/png;base64,'+data.chart_png;chart.alt=data.chart_caption||'Chart generated by the sandboxed run';chart.classList.add('show')}else{chart.removeAttribute('src');chart.classList.remove('show')}
+        $('#progress').classList.remove('show');$('#result').classList.add('show');
+      }catch(e){$('#progress').classList.remove('show');$('#empty').style.display='block';error.textContent=e.message;$('#run-id').textContent='NOT COMPLETED'}finally{$('#run').disabled=false}
+    };
+    checkHealth();
+  </script>
+</body>
+</html>
