@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+!.env.example
+*.db
+__pycache__/
+.env.*
+!.env.example
+workspaces
+output
+*.py[cod]

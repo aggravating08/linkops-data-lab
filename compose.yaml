@@ -1,0 +1,62 @@
+services:
+  sandbox-image:
+    build:
+      context: .
+      dockerfile: sandbox/Dockerfile
+    image: linkops-sandbox:latest
+    entrypoint: ["/bin/true"]
+    restart: "no"
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - sandbox-image
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8080
+      VULTR_INFERENCE_API_KEY: ${VULTR_INFERENCE_API_KEY:?Set VULTR_INFERENCE_API_KEY in .env}
+      VULTR_INFERENCE_MODEL: ${VULTR_INFERENCE_MODEL:-deepseek-v4.1-flash-1017}
+      SANDBOX_IMAGE: linkops-sandbox:latest
+    expose:
+      - "8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    group_add:
+      - "${DOCKER_GID:-0}"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    init: true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      LINKOPS_DOMAIN: ${LINKOPS_DOMAIN:?Set LINKOPS_DOMAIN in .env}
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  caddy_data:
+  caddy_config:
