@@ -59,10 +59,11 @@ CSV limit: 500 KB, 20,000 data rows, and 40 unique columns. The service allows t
 
 ## Project status and demo
 
-- Source has been reworked for the official Blast Radius Zero brief.
-- A public demo, public repository, Vultr VM deployment, live inference key, and demo video must each be verified before claiming they are live.
-- The LabLab entry must be submitted on the LabLab platform; Vultr Community sharing is optional and does not replace it.
-- Submission requirements include a public GitHub repo, Vultr VM backend, public demo URL, recorded demo with a containment moment, and clear architecture/use-case explanation.
+- **Live public demo:** https://216.155.158.211.nip.io
+- The Vultr VM is running the public app with Vultr Serverless Inference configured. A live sample run returned executed Python output and a chart; the containment probe confirmed network access blocked, root filesystem writes denied, and no inference key visible inside the sandbox.
+- The demo uses a small synthetic sample CSV. Do not upload confidential or personal data; the column names and up to five preview rows are sent to Vultr Inference, while the full CSV runs in a temporary isolated container.
+- The public repository contains the source and deployment instructions. The LabLab entry must still be submitted on the LabLab platform; Vultr Community sharing is optional and does not replace it.
+- Submission requirements include a public GitHub repo, Vultr VM backend, public demo URL, recorded demo with a containment moment, and clear architecture/use-case explanation. The recorded demo is still required.
 - [Submission cover image](assets/linkops-cover.png)
 - [Five-slide presentation](output/pdf/LinkOps_Presentation.pdf)
 - [Demo recording script](DEMO_SCRIPT.md)
